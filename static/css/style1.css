@@ -1,0 +1,225 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+header{
+    background-color: rgba(115, 148, 107, 0.8);
+    height: 80px;
+    width: 100%;
+    position: fixed;
+}
+h1{
+    color: white;
+    position: absolute;
+    left: 120px;
+    top: 0;
+    line-height: 80px;
+    background-image: url("../images/am_logo.png");
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size : contain;
+    width: 300px;
+    height: auto;
+    text-indent: 85px;
+}
+header ul{
+    position: absolute;
+    right: 3vw;
+    top: 0;
+    line-height: 80px;
+}
+header li{
+    display: inline;
+    margin-right: 4vw;
+}
+header a{
+    color: white;
+    text-decoration: none;
+}
+header a:hover{
+    text-decoration: underline;
+}
+.news{
+    background-color:#CCEEFF;
+    color:white;
+    height: 95vh;
+    background-image: url("../images/am_ch.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.news h2{
+    text-align: center;
+    font-size: 60px;
+    margin-top: 60px;
+}
+.news p{
+    color: #FEF7E6;
+    font-size: 25px;
+    margin: 25px 0;
+}
+.news a{
+    color: white;
+    text-decoration: none;
+    border: 1px solid #ACACAC;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+.slogan{
+    background-color: #485652;
+    color: white;
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    line-height: 1.8em;
+}
+footer{
+    background-color: #73946B;
+    color: #B7B7B7;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+}
+.am{
+    display: flex;
+}
+.am-img{
+    width: 50%;
+}
+.am-title{
+    width: 50%;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.am-title h2{
+    font-size: 40px;
+    margin-bottom: 30px;
+}
+.am-title p{
+    text-align: center;
+    line-height: 2em;
+}
+.product{
+    display: flex;
+    background-color: #ede9db;
+    justify-content: space-between;
+    align-items: center;
+    padding: 100px 180px 80px;
+
+}
+.product div{
+    width: 100%;
+    text-align: center;
+}
+.product img{
+    width: 400px;
+    border-radius: 10px;
+	aspect-ratio: 4/5;
+	object-fit: cover;
+}
+.product h3{
+    font-size: 30px;
+    margin: 20px 0;
+}
+.product p{
+    font-size: 14px;
+    line-height: 1.6em;
+}
+.newsletter{
+    background-color: #97ba8e;
+    color: white;
+    padding: 30px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.newsletter p{
+    margin-bottom: 20px;
+}
+.newsletter input, .newsletter button{
+    background-color: transparent;
+    color: white;
+    border: 1px solid #8c8888;
+    padding: 10px;
+    border-radius: 5px;
+}
+.newsletter input{
+    width: 200px;
+    margin-right: 15px;
+}
+.newsletter button{
+    width: 80px;
+    cursor: pointer;
+}
+input::placeholder{
+    color: #DDDDDD;
+}
+input:focus{
+    outline: none;
+    border-color: #73946B
+}
+.menu{
+    display: none;
+}
+
+/* 響應式設計語法 */
+@media screen and (max-width: 768px) {
+    header ul{
+        display: none;
+    }
+    header h1{
+        left: 50%;
+        transform: translateX(-40%);
+    }
+    .news h2{
+        text-align: center;
+        font-size: 40px;
+    }
+    .menu{
+        display: block;
+        background-color: transparent;
+        color: white;
+        font-size: 35px;
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        border: none;
+        cursor: pointer;
+    }
+    .slogan{
+        font-size: 25px;
+    }
+    .am{
+        flex-direction: column;
+        align-items: center;
+    }
+    .am-img{
+        width: 100%;
+    }
+    .am-title{
+        width: 100%;
+        padding: 40px 0;
+    }
+    .am-title h2{
+        font-size: 30px;
+    }
+    .product{
+        flex-direction: column;
+        padding: 40px 0;
+        text-align: center;
+    }
+    .product div{
+        margin-bottom: 30px;
+    }
+}

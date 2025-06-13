@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>購物車 | 遊樂園</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style1.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user_menu.css') }}">
+    <style>
+        .cart-section {
+            background: #CCEEFF;
+            min-height: 80vh;
+            padding: 40px 0 120px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .cart-container {
+            max-width: 800px;
+            width: 90%;
+            margin: 0 auto;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 24px 32px;
+            background: #fff;
+            border-radius: 14px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-size: 1.25em;
+        }
+        .cart-item img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-right: 24px;
+        }
+        .cart-item-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .cart-item-title {
+            font-size: 1.25em;
+            font-weight: bold;
+            color: #485652;
+        }
+        .cart-item-price {
+            color: #73946B;
+            font-weight: bold;
+            font-size: 1.15em;
+        }
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 1.3em;
+            background: #ede9db;
+            color: #485652;
+            border: 1px solid #73946B;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .quantity-btn:hover {
+            background: #b7d1b0;
+        }
+        .quantity-input {
+            width: 38px;
+            text-align: center;
+            font-size: 1.1em;
+            border: 1px solid #73946B;
+            border-radius: 6px;
+            background: #fff;
+            color: #485652;
+            margin: 0 4px;
+        }
+        .cart-item-total {
+            font-size: 1.1em;
+            color: #73946B;
+            font-weight: bold;
+            margin-left: 18px;
+        }
+        .remove-btn {
+            padding: 8px 16px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 20px;
+            font-size: 1em;
+            transition: background 0.2s;
+        }
+        .remove-btn:hover {
+            background: #ff5252;
+        }
+        .cart-summary {
+            background: #fff;
+            padding: 24px 32px;
+            border-radius: 14px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .cart-total {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #485652;
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .checkout-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .checkout-btn:hover {
+            background-color: #45a049;
+        }
+        .empty-cart {
+            text-align: center;
+            padding: 40px;
+            color: #485652;
+        }
+        .empty-cart h2 {
+            font-size: 1.6em;
+            margin-bottom: 32px;
+        }
+        .empty-cart p {
+            font-size: 1.2em;
+            margin-bottom: 24px;
+        }
+        .empty-cart a {
+            display: inline-block;
+            padding: 12px 32px;
+            background: #73946B;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: background 0.2s;
+        }
+        .empty-cart a:hover {
+            background: #485652;
+        }
+        @media screen and (max-width: 600px) {
+            .cart-item {
+                padding: 16px;
+                font-size: 1.1em;
+            }
+            .cart-item img {
+                width: 80px;
+                height: 80px;
+            }
+            .quantity-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 1.2em;
+            }
+            .quantity-input {
+                width: 32px;
+                font-size: 1em;
+            }
+        }
+        
+        /* 結帳彈窗樣式 */
+        .checkout-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .checkout-modal-content {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            min-width: 300px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            text-align: center;
+        }
+        .checkout-modal-title {
+            font-size: 1.3em;
+            color: #485652;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+        .checkout-modal-amount {
+            font-size: 1.1em;
+            color: #73946B;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+        .checkout-modal-btns {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+        }
+        .checkout-modal-btn {
+            padding: 8px 28px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .checkout-modal-cancel {
+            background: #ede9db;
+            color: #485652;
+            border: 1px solid #73946B;
+        }
+        .checkout-modal-confirm {
+            background: #73946B;
+            color: #fff;
+            border: none;
+        }
+        .checkout-modal-cancel:hover {
+            background: #b7d1b0;
+        }
+        .checkout-modal-confirm:hover {
+            background: #485652;
+        }
+        .success-tip {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header style="z-index:10; position:fixed; top:0; left:0; width:100%;">
+        <button class="menu">&#9776</button>
+        <h1>遊樂園</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">首頁</a></li>
+                <li><a href="{{ url_for('about') }}">關於我們</a></li>
+                <li><a href="{{ url_for('tickets') }}">線上購票</a></li>
+                <li><a href="{{ url_for('readyshopping') }}">購物車</a></li>
+                {% if session.get('username') %}
+                <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
+                {% else %}
+                <li><a href="{{ url_for('login') }}">會員專區</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% if session.get('username') %}
+        <div class="user-menu">
+            <img src="{{ url_for('static', filename='images/avatar.png') }}" class="avatar" id="avatar-btn">
+            <div class="dropdown" id="user-dropdown">
+                <div class="dropdown-username">{{ session['username'] }}</div>
+                <a href="{{ url_for('logout') }}">登出</a>
+            </div>
+        </div>
+        {% endif %}
+    </header>
+    <main style="margin-top:90px;">
+        <section class="cart-section">
+            <div class="cart-container">
+                {% if cart_items %}
+                    {% for item in cart_items %}
+                    <div class="cart-item">
+                        <img src="{{ url_for('static', filename='images/' + item[1] + '.png') }}" alt="{{ item[1] }}">
+                        <div class="cart-item-info">
+                            <div class="cart-item-title">{{ '成人票' if item[1] == 'adult' else '學生票' }}</div>
+                            <div class="cart-item-price">單價: ${{ item[3] }}</div>
+                            <form action="{{ url_for('update_cart') }}" method="POST" class="cart-item-quantity">
+                                <input type="hidden" name="cart_id" value="{{ item[0] }}">
+                                <button type="button" class="quantity-btn minus">-</button>
+                                <input type="number" name="quantity" value="{{ item[2] }}" min="1" class="quantity-input" readonly>
+                                <button type="button" class="quantity-btn plus">+</button>
+                                <button type="submit" style="display:none;"></button>
+                            </form>
+                        </div>
+                        <div class="cart-item-total">${{ item[4] }}</div>
+                        <a href="{{ url_for('remove_from_cart', cart_id=item[0]) }}" class="remove-btn">刪除</a>
+                    </div>
+                    {% endfor %}
+                    <div class="cart-summary">
+                        <h3>購物車摘要</h3>
+                        <div id="cart-total">總計: ${{ total_amount }}</div>
+                        <form method="POST" action="{{ url_for('checkout') }}" id="checkout-form">
+                            <button type="submit" class="checkout-btn" id="checkout-btn">結帳</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="empty-cart">
+                        <h2>購物車目前是空的~快去選購吧！</h2>
+                        <img src="{{ url_for('static', filename='images/emptyshopping.png') }}" alt="購物車空" style="width:220px; max-width:80vw; display:block; margin:0 auto 32px auto;">
+                        <a href="{{ url_for('tickets') }}">前往購票</a>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+    
+    <!-- 成功提示 -->
+    <div id="success-tip" class="success-tip">
+        購買成功！
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 遊樂園. 版權所有.</p>
+    </footer>
+    <script src="{{ url_for('static', filename='js/user_menu.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInputs = document.querySelectorAll('.quantity-input');
+            const minusButtons = document.querySelectorAll('.minus');
+            const plusButtons = document.querySelectorAll('.plus');
+            
+            minusButtons.forEach((btn, index) => {
+                btn.addEventListener('click', function() {
+                    const input = quantityInputs[index];
+                    const currentValue = parseInt(input.value);
+                    if (currentValue > 1) {
+                        input.value = currentValue - 1;
+                        input.closest('form').submit();
+                    }
+                });
+            });
+            
+            plusButtons.forEach((btn, index) => {
+                btn.addEventListener('click', function() {
+                    const input = quantityInputs[index];
+                    input.value = parseInt(input.value) + 1;
+                    input.closest('form').submit();
+                });
+            });
+            
+            // 結帳功能
+            const checkoutForm = document.getElementById('checkout-form');
+            if (checkoutForm) {
+                checkoutForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (confirm('確定要購買嗎？')) {
+                        fetch('/checkout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(() => {
+                            // 顯示成功提示
+                            const successTip = document.getElementById('success-tip');
+                            successTip.style.display = 'block';
+                            
+                            // 2秒後跳轉到首頁
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 2000);
+                        });
+                    }
+                });
+            }
+            
+            // 點擊彈窗外部關閉
+            window.addEventListener('click', function(event) {
+                if (event.target === checkoutModal) {
+                    checkoutModal.style.display = 'none';
+                }
+            });
+            
+            // 檢查網址參數 show_success
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('show_success') === '1') {
+                const successTip = document.getElementById('success-tip');
+                successTip.style.display = 'block';
+                setTimeout(() => {
+                    successTip.style.display = 'none';
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

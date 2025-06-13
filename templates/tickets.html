@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全部票種 | 遊樂園</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style1.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user_menu.css') }}">
+</head>
+<body>
+    <header style="z-index:10; position:fixed; top:0; left:0; width:100%;">
+        <button class="menu">&#9776</button>
+        <h1>遊樂園</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">首頁</a></li>
+                <li><a href="{{ url_for('about') }}">關於我們</a></li>
+                <li><a href="{{ url_for('tickets') }}">線上購票</a></li>
+                <li><a href="{{ url_for('readyshopping') }}">購物車</a></li>
+                {% if session.get('username') %}
+                <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
+                {% else %}
+                <li><a href="{{ url_for('login') }}">會員專區</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% if session.get('username') %}
+        <div class="user-menu">
+            <img src="{{ url_for('static', filename='images/avatar.png') }}" class="avatar" id="avatar-btn">
+            <div class="dropdown" id="user-dropdown">
+                <div class="dropdown-username">{{ session['username'] }}</div>
+                <a href="{{ url_for('logout') }}">登出</a>
+            </div>
+        </div>
+        {% endif %}
+    </header>
+    <main style="margin-top:90px;">
+        <section style="background-color:#CCEEFF; min-height:80vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
+            <h2 style="color:#485652; font-size:2.5em; margin:40px 0 30px 0;">全部票種</h2>
+            <div class="ticket-row">
+                <div class="ticket-card" data-type="adult">
+                    <div class="ticket-img-wrap">
+                        <img src="{{ url_for('static', filename='images/adult.png') }}" alt="成人票" class="ticket-img">
+                    </div>
+                    <div class="ticket-label">成人票</div>
+                    <div style="color:#73946B; font-size:1.1em; font-weight:bold; margin-bottom:12px;">$699</div>
+                    <div class="ticket-btns">
+                        <button class="buy-btn">立即購買</button>
+                        <button class="add-btn" style="display:flex; align-items:center; justify-content:center; padding:0; position:relative;">
+                            <img src="{{ url_for('static', filename='images/shopping.png') }}" alt="加入購物車" style="height:28px; width:28px; object-fit:cover; border-radius:4px; margin:0;">
+                            <span class="tooltip">加入購物車</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="ticket-card" data-type="student">
+                    <div class="ticket-img-wrap">
+                        <img src="{{ url_for('static', filename='images/student.png') }}" alt="學生票" class="ticket-img">
+                    </div>
+                    <div class="ticket-label">學生票</div>
+                    <div style="color:#73946B; font-size:1.1em; font-weight:bold; margin-bottom:12px;">$399</div>
+                    <div class="ticket-btns">
+                        <button class="buy-btn">立即購買</button>
+                        <button class="add-btn" style="display:flex; align-items:center; justify-content:center; padding:0; position:relative;">
+                            <img src="{{ url_for('static', filename='images/shopping.png') }}" alt="加入購物車" style="height:28px; width:28px; object-fit:cover; border-radius:4px; margin:0;">
+                            <span class="tooltip">加入購物車</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="cart-modal" class="cart-modal" style="display:none;">
+                <div class="cart-modal-content">
+                    <span class="close-modal">&times;</span>
+                    <img id="modal-ticket-img" src="" alt="票種圖片" style="width:180px; height:auto; display:block; margin:0 auto 18px auto; border-radius:10px;">
+                    <div id="modal-ticket-label" style="text-align:center; font-size:1.15em; color:#485652; font-weight:bold; margin-bottom:8px;"></div>
+                    <div id="modal-ticket-price" style="text-align:center; color:#73946B; font-size:1.1em; font-weight:bold; margin-bottom:10px;"></div>
+                    <div class="quantity-control">
+                        <button id="qty-minus">-</button>
+                        <input id="qty-value" type="text" value="1" readonly>
+                        <button id="qty-plus">+</button>
+                    </div>
+                    <div id="modal-total" style="text-align:center; color:#485652; font-size:1.1em; font-weight:bold; margin-bottom:10px;"></div>
+                    <div class="modal-btns">
+                        <button id="modal-cancel">取消</button>
+                        <button id="modal-confirm">確認</button>
+                    </div>
+                </div>
+            </div>
+            <div id="buy-modal" style="display:none; position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.35); z-index:2000; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:16px; min-width:260px; min-height:120px; box-shadow:0 4px 24px rgba(0,0,0,0.18); padding:32px 32px 24px 32px; display:flex; flex-direction:column; align-items:center;">
+                    <div style="font-size:1.3em; color:#485652; font-weight:bold; margin-bottom:18px;">確認購買?</div>
+                    <div id="buy-modal-amount" style="font-size:1.1em; color:#73946B; font-weight:bold; margin-bottom:18px;"></div>
+                    <div style="display:flex; gap:18px; margin-top:10px;">
+                        <button id="buy-modal-cancel" style="padding:8px 28px; border-radius:6px; border:none; background:#ede9db; color:#485652; border:1px solid #73946B; font-size:1em; cursor:pointer;">取消</button>
+                        <button id="buy-modal-confirm" style="padding:8px 28px; border-radius:6px; border:none; background:#73946B; color:#fff; font-size:1em; cursor:pointer;">確認</button>
+                    </div>
+                </div>
+            </div>
+            <div id="buy-success-tip" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%,0); background:#73946B; color:#fff; font-size:1.2em; padding:18px 38px; border-radius:10px; z-index:3000; box-shadow:0 2px 12px rgba(0,0,0,0.15);">購買成功</div>
+            <div id="error-tip" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%,0); background:#ff6b6b; color:#fff; font-size:1.2em; padding:18px 38px; border-radius:10px; z-index:3000; box-shadow:0 2px 12px rgba(0,0,0,0.15);"></div>
+        </section>
+        <style>
+        .ticket-row {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        .ticket-card {
+            background: rgba(255,255,255,0.85);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 32px 32px 28px 32px;
+            min-width: 180px;
+            text-align: center;
+            font-size: 1.2em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 260px;
+        }
+        .ticket-img-wrap {
+            width: 100%;
+            aspect-ratio: 4/5;
+            overflow: hidden;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+        .ticket-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.25s cubic-bezier(.4,1.5,.5,1);
+        }
+        .ticket-img-wrap:hover .ticket-img {
+            transform: scale(1.08);
+        }
+        .ticket-label {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 18px;
+            color: #485652;
+        }
+        .ticket-btns {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+        }
+        .buy-btn {
+            flex: 6;
+            background: #73946B;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 0;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .buy-btn:hover {
+            background: #485652;
+        }
+        .add-btn {
+            flex: 4;
+            background: #ede9db;
+            color: #485652;
+            border: 1px solid #73946B;
+            border-radius: 6px;
+            padding: 10px 0;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .add-btn:hover {
+            background: #b7d1b0;
+        }
+        .add-btn { position: relative; }
+        .tooltip {
+            display: none;
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #485652;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            white-space: nowrap;
+            z-index: 20;
+        }
+        .add-btn:hover .tooltip {
+            display: block;
+        }
+        .cart-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .cart-modal-content {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px 32px 24px 32px;
+            min-width: 260px;
+            min-height: 220px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .close-modal {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            font-size: 1.7em;
+            color: #485652;
+            cursor: pointer;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            margin: 18px 0 10px 0;
+        }
+        .quantity-control button {
+            width: 36px;
+            height: 36px;
+            font-size: 1.5em;
+            background: #ede9db;
+            color: #485652;
+            border: 1px solid #73946B;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .quantity-control button:hover {
+            background: #b7d1b0;
+        }
+        #qty-value {
+            width: 40px;
+            text-align: center;
+            font-size: 1.2em;
+            margin: 0 10px;
+            border: 1px solid #73946B;
+            border-radius: 6px;
+            background: #fff;
+            color: #485652;
+        }
+        .modal-btns {
+            display: flex;
+            gap: 18px;
+            margin-top: 18px;
+            width: 100%;
+            justify-content: center;
+        }
+        #modal-cancel, #modal-confirm {
+            padding: 8px 28px;
+            border-radius: 6px;
+            border: none;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        #modal-cancel {
+            background: #ede9db;
+            color: #485652;
+            border: 1px solid #73946B;
+        }
+        #modal-cancel:hover {
+            background: #b7d1b0;
+        }
+        #modal-confirm {
+            background: #73946B;
+            color: #fff;
+        }
+        #modal-confirm:hover {
+            background: #485652;
+        }
+        @media screen and (max-width: 700px) {
+            .ticket-row {
+                flex-direction: column;
+                align-items: center;
+            }
+            .ticket-card {
+                width: 90vw;
+                min-width: unset;
+            }
+        }
+        </style>
+        <!--彈窗-->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const cartModal = document.getElementById('cart-modal');
+                const buyModal = document.getElementById('buy-modal');
+                const errorTip = document.getElementById('error-tip');
+                let currentTicket = null;
+                let currentPrice = 0;
+
+                // 顯示錯誤提示
+                function showError(message) {
+                    errorTip.textContent = message;
+                    errorTip.style.display = 'block';
+                    setTimeout(() => {
+                        errorTip.style.display = 'none';
+                    }, 2000);
+                }
+
+                // 處理加入購物車
+                document.querySelectorAll('.add-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const ticketCard = this.closest('.ticket-card');
+                        const ticketType = ticketCard.dataset.type;
+                        const ticketImg = ticketCard.querySelector('.ticket-img').src;
+                        const ticketLabel = ticketCard.querySelector('.ticket-label').textContent;
+                        const ticketPrice = parseInt(ticketCard.querySelector('div[style*="color:#73946B"]').textContent.replace('$', ''));
+                        
+                        currentTicket = {
+                            type: ticketType,
+                            img: ticketImg,
+                            label: ticketLabel,
+                            price: ticketPrice
+                        };
+                        
+                        document.getElementById('modal-ticket-img').src = ticketImg;
+                        document.getElementById('modal-ticket-label').textContent = ticketLabel;
+                        document.getElementById('modal-ticket-price').textContent = `$${ticketPrice}`;
+                        document.getElementById('qty-value').value = '1';
+                        document.getElementById('modal-total').textContent = `總計: $${ticketPrice}`;
+                        
+                        cartModal.style.display = 'flex';
+                    });
+                });
+
+                // 關閉購物車彈窗
+                document.querySelector('.close-modal').addEventListener('click', () => {
+                    cartModal.style.display = 'none';
+                });
+
+                document.getElementById('modal-cancel').addEventListener('click', () => {
+                    cartModal.style.display = 'none';
+                });
+
+                // 數量控制
+                document.getElementById('qty-minus').addEventListener('click', function() {
+                    const qtyInput = document.getElementById('qty-value');
+                    let qty = parseInt(qtyInput.value);
+                    if (qty > 1) {
+                        qtyInput.value = qty - 1;
+                        document.getElementById('modal-total').textContent = `總計: $${currentTicket.price * (qty - 1)}`;
+                    }
+                });
+
+                document.getElementById('qty-plus').addEventListener('click', function() {
+                    const qtyInput = document.getElementById('qty-value');
+                    let qty = parseInt(qtyInput.value);
+                    qtyInput.value = qty + 1;
+                    document.getElementById('modal-total').textContent = `總計: $${currentTicket.price * (qty + 1)}`;
+                });
+
+                // 確認加入購物車
+                document.getElementById('modal-confirm').addEventListener('click', function() {
+                    const qty = parseInt(document.getElementById('qty-value').value);
+                    
+                    fetch('/add_to_cart', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `ticket_type=${currentTicket.type}&quantity=${qty}&price=${currentTicket.price}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            showError(data.error);
+                        } else {
+                            window.location.href = data.redirect || '/readyshopping';
+                        }
+                    })
+                    .catch(error => {
+                        showError('發生錯誤，請稍後再試');
+                    });
+                    
+                    cartModal.style.display = 'none';
+                });
+
+                // 立即購買按鈕
+                document.querySelectorAll('.buy-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const ticketCard = this.closest('.ticket-card');
+                        const ticketType = ticketCard.dataset.type;
+                        const ticketLabel = ticketCard.querySelector('.ticket-label').textContent;
+                        const ticketPrice = parseInt(ticketCard.querySelector('div[style*="color:#73946B"]').textContent.replace('$', ''));
+                        
+                        // 記錄目前票種資訊
+                        currentTicket = {
+                            type: ticketType,
+                            label: ticketLabel,
+                            price: ticketPrice
+                        };
+                        document.getElementById('buy-modal-amount').textContent = `${ticketLabel} $${ticketPrice}`;
+                        currentPrice = ticketPrice;
+                        
+                        buyModal.style.display = 'flex';
+                    });
+                });
+
+                // 關閉購買彈窗
+                document.getElementById('buy-modal-cancel').addEventListener('click', () => {
+                    buyModal.style.display = 'none';
+                });
+
+                // 確認購買
+                document.getElementById('buy-modal-confirm').addEventListener('click', function() {
+                    fetch('/add_to_cart', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `ticket_type=${currentTicket.type}&quantity=1&price=${currentPrice}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            showError(data.error);
+                        } else {
+                            const successTip = document.getElementById('buy-success-tip');
+                            successTip.style.display = 'block';
+                            setTimeout(() => {
+                                successTip.style.display = 'none';
+                                window.location.href = data.redirect || '/readyshopping';
+                            }, 2000);
+                        }
+                    })
+                    .catch(error => {
+                        showError('發生錯誤，請稍後再試');
+                    });
+                    
+                    buyModal.style.display = 'none';
+                });
+            });
+        </script>
+    </main>
+    <footer>
+        <p>&copy; 2025 遊樂園. 版權所有.</p>
+    </footer>
+    <script src="{{ url_for('static', filename='js/user_menu.js') }}"></script>
+</body>
+</html>

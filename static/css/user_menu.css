@@ -1,0 +1,43 @@
+.user-menu {
+    position: absolute;
+    top: 16px;
+    right: 32px;
+    z-index: 1001;
+}
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #73946B;
+    background: #fff;
+}
+.dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 48px;
+    background: #222;
+    color: #fff;
+    min-width: 180px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    padding: 10px 0;
+    font-size: 1em;
+}
+.dropdown-username {
+    padding: 8px 18px;
+    font-weight: bold;
+    border-bottom: 1px solid #444;
+    margin-bottom: 6px;
+}
+.dropdown a {
+    display: block;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 18px;
+    transition: background 0.2s;
+}
+.dropdown a:hover {
+    background: #485652;
+}

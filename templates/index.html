@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遊樂園</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style1.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user_menu.css') }}">
+</head>
+<body>
+    <header>
+    <button class="menu">&#9776</button>
+    <h1>遊樂園</h1>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index') }}">首頁</a></li>
+            <li><a href="{{ url_for('about') }}">關於我們</a></li>
+            <li><a href="{{ url_for('tickets') }}">線上購票</a></li>
+            <li><a href="{{ url_for('readyshopping') }}">購物車</a></li>
+            {% if session.get('username') %}
+            <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
+            {% else %}
+            <li><a href="{{ url_for('login') }}">會員專區</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% if session.get('username') %}
+    <div class="user-menu">
+        <img src="{{ url_for('static', filename='images/avatar.png') }}" class="avatar" id="avatar-btn">
+        <div class="dropdown" id="user-dropdown">
+            <div class="dropdown-username">{{ session['username'] }}</div>
+            <a href="{{ url_for('logout') }}">登出</a>
+        </div>
+    </div>
+    {% endif %}
+
+    </header>
+
+    <main>
+
+    <section class="news">
+        <h2>歡樂登場，夢想啟航！<br>HappyLand 正式開園啦！</h2>
+        <p>每一步都是驚喜，每一笑都是真心！</p>
+        <p><a href="#">了解更多</a></p>
+    </section>
+
+    <section class="slogan">
+    <blockquote>"在這裡，每一個瞬間都是值得珍藏的回憶！！"</blockquote>
+    </section>
+
+    <section class="am">
+
+        <img src="{{ url_for('static', filename='images/am.png') }}" class="am-img" alt="遊樂園">
+
+        <div class="am-title">
+        <h2>遊樂設施</h2>
+        <p>親愛的遊客們，歡迎來到我們的遊樂園！這裡是夢想與歡樂的世界，<br>
+        我們為您準備了各式各樣的遊樂設施和精彩活動，讓您在這裡度過難忘的一天！</p>
+        </div>
+    </section>
+
+    <section class="product" alt="遊樂設施">
+        <div>
+            <img src="{{ url_for('static', filename='images/skyscraper.png') }}" alt="摩天輪">
+            <h3>LOVE摩天輪</h3>
+            <p>LOVE摩天輪．戀愛從這裡開始轉動！</p>
+        </div>
+        <div>
+            <img src="{{ url_for('static', filename='images/water_park.png') }}" alt="水樂園">
+            <h3>COOL水樂園</h3>
+            <p>cool水樂園．清涼一夏 從這裡開始！</p>
+        </div>
+        <div>
+            <img src="{{ url_for('static', filename='images/pirate_ship.png') }}" alt="海盜船">
+            <h3>SEA海盜船</h3>
+            <p>SEA海盜船．啟航吧，勇敢的冒險家！</p>
+        </div>
+    </section>
+
+    <section class="newsletter">
+        <p>
+            訂閱我們的電子報，獲取最新消息和優惠活動！<br>
+        </p>
+            <form>
+                <input type="email" placeholder="請輸入電子郵件" required>
+                <button type="submit">送出</button>
+            </form>
+    </section>
+    </main>
+    <script src="{{ url_for('static', filename='js/user_menu.js') }}"></script>
+</body>
+<footer>
+        <p>&copy; 2025 遊樂園. 版權所有.</p>
+    </footer>
+</html>

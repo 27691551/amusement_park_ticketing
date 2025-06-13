@@ -1,22 +1,115 @@
-<!-- templates/login.html -->
 <!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>登入</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登錄</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style2.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user_menu.css') }}">
 </head>
 <body>
-    <h2>登入</h2>
-    <form action="/login" method="post">
-        帳號：<input type="text" name="uid" required><br>
-        密碼：<input type="password" name="password" required><br>
-        <button type="submit">登入</button>
-    </form>
-    <a href="/register">註冊</a> |
-    <a href="/forgot">忘記密碼</a>  
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}<p style="color:red">{{ messages[0] }}</p>{% endif %}
-    {% endwith %}
-</body>
-</html>
 
+    <header>
+        <button class="menu">&#9776</button>
+        <h1>遊樂園</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">首頁</a></li>
+                <li><a href="{{ url_for('about') }}">關於我們</a></li>
+                <li><a href="{{ url_for('tickets') }}">線上購票</a></li>
+                <li><a href="{{ url_for('readyshopping') }}">購物車</a></li>
+                {% if session.get('username') %}
+                <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
+                {% else %}
+                <li><a href="{{ url_for('login') }}">會員專區</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% if session.get('username') %}
+        <div class="user-menu">
+            <img src="{{ url_for('static', filename='images/avatar.png') }}" class="avatar" id="avatar-btn">
+            <div class="dropdown" id="user-dropdown">
+                <div class="dropdown-username">{{ session['username'] }}</div>
+                <a href="{{ url_for('logout') }}">登出</a>
+            </div>
+        </div>
+        {% endif %}
+    </header>
+
+    <main class="wrapper">
+    <div class="container">
+        <div class="form-box login">
+            <form action="{{ url_for('login') }}" method = "POST">
+                <h1>登錄</h1>
+                <div class="input-box">
+                    <input type="text" placeholder="Username/Email" name = "account" required>
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" placeholder="Password" name = "password" required>
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                <div class="forgot-link">
+                    <a href="#">忘記密碼?</a>
+                </div>
+                <button type="submit" class="btn">登錄</button>
+                <p>使用社交平台登錄</p>
+                <div class="social-icons">
+                    <a href="#"><i class='bx bxl-google'></i></a>
+                    <a href="#"><i class='bx bxl-facebook'></i></a>
+                    <a href="#"><i class='bx bxl-github'></i></a>
+                    <a href="#"><i class='bx bxl-linkedin'></i></a>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-box register">
+            <form action="{{ url_for('register') }}" method = "POST">
+                <h1>註冊</h1>
+                <div class="input-box">
+                    <input type="text" placeholder="Username" name = "username" required>
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-box">
+                    <input type="email" placeholder="Email" name = "email" required>
+                    <i class='bx bxs-envelope'></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" placeholder="Password" name = "password" required>
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                <button type="submit" class="btn">註冊</button>
+                <p>使用社交平台註冊</p>
+                <div class="social-icons">
+                    <a href="#"><i class='bx bxl-google'></i></a>
+                    <a href="#"><i class='bx bxl-facebook'></i></a>
+                    <a href="#"><i class='bx bxl-github'></i></a>
+                    <a href="#"><i class='bx bxl-linkedin'></i></a>
+                </div>
+            </form>
+        </div>
+
+        <div class="toggle-box">
+            <div class="toggle-panel toggle-left">
+                <h1>哈囉, 歡迎!</h1>
+                <p>沒有帳號?</p>
+                <button class="btn register-btn">註冊</button>
+            </div>
+            <div class="toggle-panel toggle-right">
+                <h1>歡迎回來!</h1>
+                <p>已經有帳號?</p>
+                <button class="btn login-btn">登錄</button>
+            </div>
+        </div>
+    </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/user_menu.js') }}"></script>
+</body>
+<footer>
+        <p>&copy; 2025 遊樂園. 版權所有.</p>
+    </footer>
+</html>
