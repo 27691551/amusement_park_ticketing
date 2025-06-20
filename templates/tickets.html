@@ -18,7 +18,9 @@
                 <li><a href="{{ url_for('about') }}">關於我們</a></li>
                 <li><a href="{{ url_for('tickets') }}">線上購票</a></li>
                 <li><a href="{{ url_for('readyshopping') }}">購物車</a></li>
+                
                 {% if session.get('username') %}
+                <li><a href="{{ url_for('my_orders') }}">我的訂單</a></li>
                 <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
                 {% else %}
                 <li><a href="{{ url_for('login') }}">會員專區</a></li>
@@ -99,6 +101,20 @@
             <div id="buy-success-tip" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%,0); background:#73946B; color:#fff; font-size:1.2em; padding:18px 38px; border-radius:10px; z-index:3000; box-shadow:0 2px 12px rgba(0,0,0,0.15);">購買成功</div>
             <div id="error-tip" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%,0); background:#ff6b6b; color:#fff; font-size:1.2em; padding:18px 38px; border-radius:10px; z-index:3000; box-shadow:0 2px 12px rgba(0,0,0,0.15);"></div>
         </section>
+        {% if qrcodes_info %}
+        <section style="margin-top:40px; background:#fffbe6; border-radius:12px; padding:32px 24px; max-width:600px; width:100%; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+            <h2 style="color:#485652; font-size:2em; margin-bottom:24px;">您的訂單 QR Code</h2>
+            {% for qr in qrcodes_info %}
+            <div style="margin-bottom:32px; border-bottom:1px solid #eee; padding-bottom:24px;">
+                <div style="font-size:1.1em; color:#485652; margin-bottom:8px;">票種：{{ qr.ticket_type }}　數量：{{ qr.quantity }}　單價：${{ qr.price }}</div>
+                <div style="font-size:1.1em; color:#485652; margin-bottom:8px;">總金額：${{ qr.total }}</div>
+                <div style="font-size:0.98em; color:#888; margin-bottom:8px;">時間：{{ qr.timestamp }}</div>
+                <div style="font-size:0.98em; color:#888; margin-bottom:8px;">專屬代碼：{{ qr.qrcode_code }}</div>
+                <img src="{{ url_for('static', filename='images/qrcodes/' + qr.qr_filename) }}" alt="QR Code" style="width:160px; height:160px; margin-top:10px; border:1px solid #ccc; border-radius:8px;">
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
         <style>
         .ticket-row {
             display: flex;

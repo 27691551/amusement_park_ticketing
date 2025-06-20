@@ -78,7 +78,8 @@
                 {% if session.get('username') %}
                 <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
                 {% if session.get('username') == 'admin' %}
-                <li><a href="{{ url_for('admin_orders') }}" style="color:#73946B;font-weight:bold;">訂單總覽</a></li>
+                <li><a href="{{ url_for('admin_orders') }}" style="color:#e5e6e4;font-weight:bold;">訂單總覽</a></li>
+                <li><a href="{{ url_for('admin_users') }}" style="color:#e5e6e4;font-weight:bold;"> 使用者管理</a></li>
                 {% endif %}
                 {% else %}
                 <li><a href="{{ url_for('login') }}">會員專區</a></li>

@@ -110,31 +110,91 @@ footer{
     text-align: center;
     line-height: 2em;
 }
-.product{
-    display: flex;
+/* === 輪播圖樣式，取代 .product 的排版方式 === */
+.carousel.product {
+    padding-top: 40px;
     background-color: #ede9db;
-    justify-content: space-between;
-    align-items: center;
-    padding: 100px 180px 80px;
-
-}
-.product div{
-    width: 100%;
+    border-radius: 12px;
+    padding-bottom: 40px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
     text-align: center;
 }
-.product img{
-    width: 400px;
-    border-radius: 10px;
-	aspect-ratio: 4/5;
-	object-fit: cover;
+
+
+.carousel-container {
+    display: flex;
+    transition: transform 0.5s ease;
+    overflow: hidden;
 }
-.product h3{
+
+.carousel-slide {
+    min-width: 100%;
+    display: none;
+    flex-shrink: 0;
+    padding: 10px;
+}
+
+.carousel-slide.active {
+    display: block;
+}
+
+.carousel-slide img {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 10px;
+    aspect-ratio: 4/5;
+    object-fit: cover;
+    margin: 0 auto;
+}
+
+.carousel-slide h3 {
     font-size: 30px;
     margin: 20px 0;
 }
-.product p{
+
+.carousel-slide p {
     font-size: 14px;
     line-height: 1.6em;
+    padding: 0 10px;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0,0,0,0.3);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
+    border-radius: 50%;
+}
+
+.carousel-btn.prev {
+    left: 15px;
+}
+
+.carousel-btn.next {
+    right: 15px;
+}
+
+/* === 響應式輪播圖調整 === */
+@media screen and (max-width: 768px) {
+
+    .carousel-slide h3 {
+        font-size: 24px;
+    }
+
+    .carousel-slide p {
+        font-size: 13px;
+    }
+
+    .carousel-btn {
+        font-size: 20px;
+        padding: 8px 12px;
+    }
 }
 .newsletter{
     background-color: #97ba8e;

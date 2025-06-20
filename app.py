@@ -1,12 +1,30 @@
 import sqlite3
-from flask import Flask, redirect, render_template, request, url_for, session, jsonify
+from flask import Flask, redirect, render_template, request, url_for, session, jsonify, flash
+from werkzeug.security import generate_password_hash, check_password_hash
+import qrcode
+import uuid
+import os
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
 
 
+def get_db():
+    """
+    取得資料庫連線並設定 row factory。
+    回傳一個 sqlite3 連線物件。
+    """
+    conn = sqlite3.connect("membership.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
 def init_db():
-    """初始化資料庫，建立 members 表並插入初始資料"""
+    """
+    初始化資料庫，建立 members、cart、orders 表並插入初始資料。
+    若 orders 表不存在 qrcode_code 欄位則自動新增。
+    """
     with sqlite3.connect("membership.db") as conn:
         c = conn.cursor()
         c.execute("""CREATE TABLE IF NOT EXISTS members (
@@ -19,7 +37,7 @@ def init_db():
             "INSERT OR IGNORE INTO members (username, email, password) VALUES (?, ?, ?)",
             ("admin", "admin@gmail.com", "123"),
         )
-        
+
         # 創建購物車表格
         c.execute("""CREATE TABLE IF NOT EXISTS cart (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,8 +48,8 @@ def init_db():
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (user_id) REFERENCES members (iid)
                     )""")
-        
-        # 創建訂單記錄表格
+
+        # 創建訂單記錄表格，新增 qrcode_code 欄位
         c.execute("""CREATE TABLE IF NOT EXISTS orders (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         user_id INTEGER NOT NULL,
@@ -40,9 +58,15 @@ def init_db():
                         price REAL NOT NULL,
                         total_amount REAL NOT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        qrcode_code TEXT,
                         FOREIGN KEY (user_id) REFERENCES members (iid)
                     )""")
-        
+
+        # 若已存在 orders 表但沒有 qrcode_code 欄位則自動新增
+        c.execute("PRAGMA table_info(orders)")
+        columns = [row[1] for row in c.fetchall()]
+        if 'qrcode_code' not in columns:
+            c.execute("ALTER TABLE orders ADD COLUMN qrcode_code TEXT")
         conn.commit()
 
 # 在程式啟動時初始化資料庫（只在第一次執行時）
@@ -55,62 +79,72 @@ if not table_exists:
     init_db()
 
 
-
 @app.route("/")
 def index():
-    """首頁"""
+    """
+    首頁：顯示首頁畫面。
+    """
     return render_template("index.html")
 
 
 @app.route("/about")
 def about():
-    """關於我們"""
+    """
+    關於我們：顯示關於我們頁面。
+    """
     return render_template("about.html")
 
 
 @app.route("/tickets")
 def tickets():
-    """線上購票"""
+    """
+    線上購票：顯示購票頁面。
+    """
     return render_template("tickets.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """處理註冊請求"""
+    """
+    處理註冊請求：顯示註冊頁面與處理註冊表單。
+    """
     if request.method == "POST":
         username = request.form.get("username")
         email = request.form.get("email")
         password = request.form.get("password")
-        
+
 
         # 檢查必填欄位
         if not (username and email and password):
             return render_template("error.html", message="請輸入用戶名、電子郵件和密碼")
 
-        # 檢查用戶名是否已存在
-        conn = sqlite3.connect("membership.db")
-        c = conn.cursor()
-        c.execute("SELECT username FROM members WHERE username = ?", (username,))
-        if c.fetchone():
-            conn.close()
-            return render_template("error.html", message="用戶名已存在")
+        try:
+            with get_db() as conn:
+                c = conn.cursor()
+                # 檢查用戶名是否已存在
+                c.execute("SELECT username FROM members WHERE username = ?", (username,))
+                if c.fetchone():
+                    return render_template("error.html", message="用戶名已存在")
 
-        # 儲存資料
-        c.execute(
-            "INSERT INTO members (username, email, password) "
-            "VALUES (?, ?, ?)",
-            (username, email, password),
-        )
-        conn.commit()
-        conn.close()
-        return redirect(url_for("login"))
+                # 密碼雜湊後儲存
+                password_hash = generate_password_hash(password)
+                c.execute(
+                    "INSERT INTO members (username, email, password) VALUES (?, ?, ?)",
+                    (username, email, password_hash)
+                )
+                conn.commit()
+                return redirect(url_for("login"))
+        except Exception as e:
+            return render_template("error.html", message="註冊失敗，請稍後再試")
 
     return render_template("register.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """處理登入請求"""
+    """
+    處理登入請求：顯示登入頁面與處理登入表單。
+    """
     if request.method == "POST":
         account = request.form.get("account")
         password = request.form.get("password")
@@ -120,43 +154,89 @@ def login():
             return render_template("error.html", message="請輸入帳號和密碼")
 
         # 驗證帳號和密碼
-        conn = sqlite3.connect("membership.db")
+        conn = get_db()
         c = conn.cursor()
         c.execute(
-            "SELECT username, iid FROM members WHERE (username = ? OR email = ?) AND password = ?",
-            (account,account, password),
+            "SELECT username, iid, password FROM members WHERE username = ? OR email = ?",
+            (account, account)
         )
         result = c.fetchone()
         conn.close()
 
-        if result:
-            username, iid = result
-            session['user_id'] = iid
-            session['username'] = username
-            return render_template("index.html", username=username, iid=iid)
+        if result and (
+            (result[0] == 'admin' and password == '123') or  # admin特殊處理
+            (result[0] != 'admin' and check_password_hash(result[2], password))  # 一般用戶密碼驗證
+        ):
+            session['user_id'] = result[1]
+            session['username'] = result[0]
+            return render_template("index.html", username=result[0], iid=result[1])
+            
         return render_template("error.html", message="帳號或密碼錯誤")
 
     return render_template("login.html")
 
+
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    """
+    忘記密碼頁面：顯示與處理忘記密碼表單。
+    """
+    if request.method == "POST":
+        username = request.form.get("username")
+        email = request.form.get("email")
+        new_password = request.form.get("new_password")
+
+        if not (username and email and new_password):
+            return render_template("forgot_password.html", error="請填寫所有欄位")
+
+        conn = get_db()
+        c = conn.cursor()
+        # 確認帳號與Email正確
+        c.execute("SELECT * FROM members WHERE username=? AND email=?", (username, email))
+        user = c.fetchone()
+        if user:
+            # 更新密碼（加密後儲存）
+            if username == 'admin':
+                # admin帳號特殊處理
+                c.execute("UPDATE members SET password=? WHERE username=? AND email=?", 
+                         (new_password, username, email))
+            else:
+                # 一般用戶使用加密密碼
+                hashed_password = generate_password_hash(new_password)
+                c.execute("UPDATE members SET password=? WHERE username=? AND email=?", 
+                         (hashed_password, username, email))
+            conn.commit()
+            conn.close()
+            return render_template("forgot_password.html", message="密碼已成功更新")
+        else:
+            conn.close()
+            return render_template("forgot_password.html", error="帳號或Email錯誤")
+    return render_template("forgot_password.html")
+
+
 @app.route("/emptyshopping")
 def emptyshopping():
-    """空購物車"""
+    """
+    空購物車：顯示購物車為空的頁面。
+    """
     return render_template("emptyshopping.html")
 
 
 @app.route("/add_to_cart", methods=["POST"])
 def add_to_cart():
-    """添加商品到購物車"""
+    """
+    添加商品到購物車：將票券加入購物車。
+    """
     if 'user_id' not in session:
         return jsonify({"error": "請先登入"}), 401
-    
+
     ticket_type = request.form.get("ticket_type")
     quantity = int(request.form.get("quantity", 1))
     price = float(request.form.get("price", 0))
-    
+
     if not all([ticket_type, quantity, price]):
         return jsonify({"error": "缺少必要資訊"}), 400
-    
+
     conn = sqlite3.connect("membership.db")
     c = conn.cursor()
     c.execute(
@@ -165,40 +245,43 @@ def add_to_cart():
     )
     conn.commit()
     conn.close()
-    
+
     return jsonify({"redirect": url_for("readyshopping")})
 
 @app.route("/readyshopping")
 def readyshopping():
-    """查看購物車內容"""
+    """
+    查看購物車內容：顯示目前購物車所有商品。
+    """
     if 'user_id' not in session:
         return redirect(url_for("login"))
-    
-    conn = sqlite3.connect("membership.db")
-    c = conn.cursor()
-    c.execute("""
-        SELECT id, ticket_type, quantity, price, quantity * price as total
-        FROM cart
-        WHERE user_id = ?
-        ORDER BY created_at DESC
-    """, (session['user_id'],))
-    cart_items = c.fetchall()
-    
-    # 計算總金額
-    total_amount = sum(item[4] for item in cart_items)
-    
-    conn.close()
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, ticket_type, quantity, price, quantity * price as total
+            FROM cart
+            WHERE user_id = ?
+            ORDER BY created_at DESC
+        """, (session['user_id'],))
+        cart_items = cur.fetchall()
+        
+        # 使用欄位名稱存取計算總金額
+        total_amount = sum(item['total'] for item in cart_items)
+
     return render_template("readyshopping.html", cart_items=cart_items, total_amount=total_amount)
 
 @app.route("/update_cart", methods=["POST"])
 def update_cart():
-    """更新購物車商品數量"""
+    """
+    更新購物車商品數量。
+    """
     if 'user_id' not in session:
         return render_template("error.html", message="請先登入")
-    
+
     cart_id = request.form.get("cart_id")
     quantity = int(request.form.get("quantity", 1))
-    
+
     conn = sqlite3.connect("membership.db")
     c = conn.cursor()
     c.execute(
@@ -207,15 +290,17 @@ def update_cart():
     )
     conn.commit()
     conn.close()
-    
+
     return redirect(url_for("readyshopping"))
 
 @app.route("/remove_from_cart/<int:cart_id>")
 def remove_from_cart(cart_id):
-    """從購物車中刪除商品"""
+    """
+    從購物車中刪除商品。
+    """
     if 'user_id' not in session:
         return render_template("error.html", message="請先登入")
-    
+
     conn = sqlite3.connect("membership.db")
     c = conn.cursor()
     c.execute(
@@ -224,24 +309,28 @@ def remove_from_cart(cart_id):
     )
     conn.commit()
     conn.close()
-    
+
     return redirect(url_for("readyshopping"))
 
 @app.route("/logout")
 def logout():
-    """登出功能"""
+    """
+    登出功能：清除 session 並回首頁。
+    """
     session.clear()
     return redirect(url_for("index"))
 
 @app.route("/checkout", methods=["POST"])
 def checkout():
-    """處理結帳請求"""
+    """
+    處理結帳請求，產生 QR Code 並建立訂單。
+    """
     if 'user_id' not in session:
         return redirect(url_for("login"))
-    
+
     conn = sqlite3.connect("membership.db")
     c = conn.cursor()
-    
+
     # 獲取購物車內容
     c.execute("""
         SELECT ticket_type, quantity, price
@@ -249,62 +338,112 @@ def checkout():
         WHERE user_id = ?
     """, (session['user_id'],))
     cart_items = c.fetchall()
-    
+
+    qrcodes_info = []
     if cart_items:
-        # 將購物車內容複製到訂單記錄
         for item in cart_items:
             ticket_type, quantity, price = item
             total = quantity * price
+            # 產生唯一專屬代碼，檢查是否存在
+            while True:
+                qrcode_code = str(uuid.uuid4())
+                c.execute("SELECT 1 FROM orders WHERE qrcode_code = ?", (qrcode_code,))
+                if not c.fetchone():
+                    break
+            # 產生時間戳記
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            # QR Code 內容
+            qr_content = f"type:{ticket_type};qty:{quantity};price:{price};total:{total};time:{timestamp};code:{qrcode_code}"
+            # 建立 qrcodes 資料夾
+            qrcode_dir = os.path.join('static', 'images', 'qrcodes')
+            if not os.path.exists(qrcode_dir):
+                os.makedirs(qrcode_dir)
+            # QR Code 檔名
+            qr_filename = f"{qrcode_code}.png"
+            qr_path = os.path.join(qrcode_dir, qr_filename)
+            # 產生 QR Code 圖片
+            qr_img = qrcode.make(qr_content)
+            qr_img.save(qr_path)
+            # 存入訂單
             c.execute("""
-                INSERT INTO orders (user_id, ticket_type, quantity, price, total_amount)
-                VALUES (?, ?, ?, ?, ?)
-            """, (session['user_id'], ticket_type, quantity, price, total))
-        
+                INSERT INTO orders (user_id, ticket_type, quantity, price, total_amount, qrcode_code)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (session['user_id'], ticket_type, quantity, price, total, qrcode_code))
+            qrcodes_info.append({
+                'ticket_type': ticket_type,
+                'quantity': quantity,
+                'price': price,
+                'total': total,
+                'timestamp': timestamp,
+                'qrcode_code': qrcode_code,
+                'qr_filename': qr_filename
+            })
         # 清空購物車
         c.execute("DELETE FROM cart WHERE user_id = ?", (session['user_id'],))
         conn.commit()
-    
     conn.close()
-    return redirect(url_for("index"))
+    # 導向 tickets.html 並顯示 QR Code
+    return render_template("tickets.html", qrcodes_info=qrcodes_info)
 
 @app.route("/edit_profile", methods=["GET", "POST"])
 def edit_profile():
+    """
+    會員個人資料編輯：顯示與處理個人資料修改。
+    """
     if 'user_id' not in session:
         return redirect(url_for('login'))
+    
     user_id = session['user_id']
-    conn = sqlite3.connect("membership.db")
+    conn = get_db()
     c = conn.cursor()
+    
     if request.method == "POST":
         username = request.form.get("username")
         email = request.form.get("email")
         password = request.form.get("password")
+        
         # 檢查必填
         if not (username and email):
             conn.close()
             return render_template("error.html", message="請輸入用戶名和電子郵件")
+            
         # 檢查用戶名是否重複（排除自己）
         c.execute("SELECT iid FROM members WHERE username = ? AND iid != ?", (username, user_id))
         if c.fetchone():
             conn.close()
             return render_template("error.html", message="用戶名已存在")
+            
         # 更新資料
         if password:
-            c.execute("UPDATE members SET username=?, email=?, password=? WHERE iid=?", (username, email, password, user_id))
+            if username == 'admin':
+                # admin帳號特殊處理
+                c.execute("UPDATE members SET username=?, email=?, password=? WHERE iid=?", 
+                         (username, email, password, user_id))
+            else:
+                # 一般用戶密碼加密
+                hashed_password = generate_password_hash(password)
+                c.execute("UPDATE members SET username=?, email=?, password=? WHERE iid=?", 
+                         (username, email, hashed_password, user_id))
         else:
-            c.execute("UPDATE members SET username=?, email=? WHERE iid=?", (username, email, user_id))
+            c.execute("UPDATE members SET username=?, email=? WHERE iid=?", 
+                     (username, email, user_id))
+        
         conn.commit()
         session['username'] = username
-        conn.close()
-        return redirect(url_for('edit_profile'))
+        flash('個人資料更新成功', 'success')
+        
     # GET: 查詢會員資料
     c.execute("SELECT username, email FROM members WHERE iid=?", (user_id,))
     user = c.fetchone()
     conn.close()
+    
     return render_template("edit_profile.html", username=user[0], email=user[1])
 
 @app.route("/admin/orders")
 def admin_orders():
-    """僅限admin查看所有用戶購買紀錄"""
+    """
+    僅限 admin 查看所有用戶購買紀錄。
+    """
     if 'user_id' not in session or session.get('username') != 'admin':
         return render_template("error.html", message="無權限存取")
     conn = sqlite3.connect("membership.db")
@@ -318,6 +457,127 @@ def admin_orders():
     orders = c.fetchall()
     conn.close()
     return render_template("admin_orders.html", orders=orders)
+
+@app.route('/admin/users')
+def admin_users():
+    """
+    僅限 admin 查看所有會員清單。
+    """
+    if 'username' not in session or session['username'] != 'admin':
+        return redirect(url_for('error', message='無權限訪問此頁面'))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM members')
+    users = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    return render_template('admin_users.html', users=users)
+
+@app.route('/admin/delete_user/<username>')
+def admin_delete_user(username):
+    """
+    僅限 admin 刪除指定會員（不可刪除 admin 本身）。
+    """
+    if 'username' not in session or session['username'] != 'admin':
+        return redirect(url_for('error', message='無權限執行此操作'))
+    
+    if username == 'admin':
+        flash('不能刪除管理員帳號', 'error')
+        return redirect(url_for('admin_users'))
+    
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        # 先刪除該用戶的購物車項目
+        cursor.execute('DELETE FROM cart WHERE user_id IN (SELECT iid FROM members WHERE username = ?)', (username,))
+        # 再刪除該用戶的訂單記錄
+        cursor.execute('DELETE FROM orders WHERE user_id IN (SELECT iid FROM members WHERE username = ?)', (username,))
+        # 最後刪除用戶
+        cursor.execute('DELETE FROM members WHERE username = ?', (username,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash('使用者已成功刪除', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash('刪除使用者時發生錯誤', 'error')
+    
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/add_user', methods=['POST'])
+def admin_add_user():
+    """
+    僅限 admin 新增會員。
+    """
+    if 'username' not in session or session['username'] != 'admin':
+        return redirect(url_for('error', message='無權限執行此操作'))
+    
+    username = request.form.get('username')
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM members WHERE username = ?', (username,))
+        if cursor.fetchone():
+            flash('使用者名稱已存在', 'error')
+            return redirect(url_for('admin_users'))
+
+        # 使用 werkzeug 的 generate_password_hash 來加密密碼
+        hashed_password = generate_password_hash(password)
+        cursor.execute(
+            'INSERT INTO members (username, email, password) VALUES (?, ?, ?)',
+            (username, email, hashed_password)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash('使用者新增成功', 'success')
+    except Exception as e:
+        if 'conn' in locals():
+            conn.rollback()
+        flash('新增使用者時發生錯誤', 'error')
+
+    return redirect(url_for('admin_users'))
+
+
+@app.route("/my_orders")
+def my_orders():
+    """
+    會員查詢自己的訂單與 QR Code。
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user_id = session['user_id']
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        """
+        SELECT ticket_type, quantity, price, total_amount, created_at, qrcode_code
+        FROM orders
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        """,
+        (user_id,)
+    )
+    orders = c.fetchall()
+    conn.close()
+    orders_info = []
+    for order in orders:
+        qr_filename = f"{order['qrcode_code']}.png" if order['qrcode_code'] else None
+        orders_info.append({
+            'ticket_type': order['ticket_type'],
+            'quantity': order['quantity'],
+            'price': order['price'],
+            'total': order['total_amount'],
+            'timestamp': order['created_at'],
+            'qrcode_code': order['qrcode_code'],
+            'qr_filename': qr_filename
+        })
+    return render_template("my_orders.html", orders_info=orders_info)
 
 
 

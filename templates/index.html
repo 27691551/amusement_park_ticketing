@@ -18,7 +18,9 @@
             <li><a href="{{ url_for('about') }}">關於我們</a></li>
             <li><a href="{{ url_for('tickets') }}">線上購票</a></li>
             <li><a href="{{ url_for('readyshopping') }}">購物車</a></li>
+            
             {% if session.get('username') %}
+            <li><a href="{{ url_for('my_orders') }}">我的訂單</a></li>
             <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
             {% else %}
             <li><a href="{{ url_for('login') }}">會員專區</a></li>
@@ -42,7 +44,7 @@
     <section class="news">
         <h2>歡樂登場，夢想啟航！<br>HappyLand 正式開園啦！</h2>
         <p>每一步都是驚喜，每一笑都是真心！</p>
-        <p><a href="#">了解更多</a></p>
+        <p><a href="{{ url_for('about') }}">了解更多</a></p>
     </section>
 
     <section class="slogan">
@@ -60,23 +62,28 @@
         </div>
     </section>
 
-    <section class="product" alt="遊樂設施">
-        <div>
+    <section class="carousel product" aria-label="遊樂設施">
+    <div class="carousel-container">
+        <div class="carousel-slide active">
             <img src="{{ url_for('static', filename='images/skyscraper.png') }}" alt="摩天輪">
             <h3>LOVE摩天輪</h3>
             <p>LOVE摩天輪．戀愛從這裡開始轉動！</p>
         </div>
-        <div>
+        <div class="carousel-slide">
             <img src="{{ url_for('static', filename='images/water_park.png') }}" alt="水樂園">
             <h3>COOL水樂園</h3>
             <p>cool水樂園．清涼一夏 從這裡開始！</p>
         </div>
-        <div>
+        <div class="carousel-slide">
             <img src="{{ url_for('static', filename='images/pirate_ship.png') }}" alt="海盜船">
             <h3>SEA海盜船</h3>
             <p>SEA海盜船．啟航吧，勇敢的冒險家！</p>
         </div>
-    </section>
+    </div>
+    <button class="carousel-btn prev">&#10094;</button>
+    <button class="carousel-btn next">&#10095;</button>
+</section>
+
 
     <section class="newsletter">
         <p>
@@ -88,7 +95,38 @@
             </form>
     </section>
     </main>
+    </section>
+    </main>
     <script src="{{ url_for('static', filename='js/user_menu.js') }}"></script>
+    <script>
+    const slides = document.querySelectorAll('.carousel-slide');
+    const prevBtn = document.querySelector('.carousel-btn.prev');
+    const nextBtn = document.querySelector('.carousel-btn.next');
+    let currentIndex = 0;
+
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.classList.toggle('active', i === index);
+        });
+    }
+
+    prevBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        showSlide(currentIndex);
+    });
+
+    nextBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % slides.length;
+        showSlide(currentIndex);
+    });
+
+    // 初始化與自動輪播
+    showSlide(currentIndex);
+    setInterval(() => {
+        currentIndex = (currentIndex + 1) % slides.length;
+        showSlide(currentIndex);
+    }, 5000);
+</script>
 </body>
 <footer>
         <p>&copy; 2025 遊樂園. 版權所有.</p>
