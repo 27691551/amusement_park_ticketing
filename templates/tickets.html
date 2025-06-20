@@ -18,7 +18,7 @@
                 <li><a href="{{ url_for('about') }}">關於我們</a></li>
                 <li><a href="{{ url_for('tickets') }}">線上購票</a></li>
                 <li><a href="{{ url_for('readyshopping') }}">購物車</a></li>
-
+                
                 {% if session.get('username') %}
                 <li><a href="{{ url_for('my_orders') }}">我的訂單</a></li>
                 <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
@@ -37,8 +37,8 @@
         </div>
         {% endif %}
     </header>
-    <main style="margin-top:80px;">
-        <section style="background-color:#CCEEFF; min-height:85vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
+    <main style="margin-top:90px;">
+        <section style="background-color:#CCEEFF; min-height:80vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
             <h2 style="color:#485652; font-size:2.5em; margin:40px 0 30px 0;">全部票種</h2>
             <div class="ticket-row">
                 <div class="ticket-card" data-type="adult">
@@ -334,20 +334,20 @@
                         const ticketImg = ticketCard.querySelector('.ticket-img').src;
                         const ticketLabel = ticketCard.querySelector('.ticket-label').textContent;
                         const ticketPrice = parseInt(ticketCard.querySelector('div[style*="color:#73946B"]').textContent.replace('$', ''));
-
+                        
                         currentTicket = {
                             type: ticketType,
                             img: ticketImg,
                             label: ticketLabel,
                             price: ticketPrice
                         };
-
+                        
                         document.getElementById('modal-ticket-img').src = ticketImg;
                         document.getElementById('modal-ticket-label').textContent = ticketLabel;
                         document.getElementById('modal-ticket-price').textContent = `$${ticketPrice}`;
                         document.getElementById('qty-value').value = '1';
                         document.getElementById('modal-total').textContent = `總計: $${ticketPrice}`;
-
+                        
                         cartModal.style.display = 'flex';
                     });
                 });
@@ -381,7 +381,7 @@
                 // 確認加入購物車
                 document.getElementById('modal-confirm').addEventListener('click', function() {
                     const qty = parseInt(document.getElementById('qty-value').value);
-
+                    
                     fetch('/add_to_cart', {
                         method: 'POST',
                         headers: {
@@ -400,7 +400,7 @@
                     .catch(error => {
                         showError('發生錯誤，請稍後再試');
                     });
-
+                    
                     cartModal.style.display = 'none';
                 });
 
@@ -411,7 +411,7 @@
                         const ticketType = ticketCard.dataset.type;
                         const ticketLabel = ticketCard.querySelector('.ticket-label').textContent;
                         const ticketPrice = parseInt(ticketCard.querySelector('div[style*="color:#73946B"]').textContent.replace('$', ''));
-
+                        
                         // 記錄目前票種資訊
                         currentTicket = {
                             type: ticketType,
@@ -420,7 +420,7 @@
                         };
                         document.getElementById('buy-modal-amount').textContent = `${ticketLabel} $${ticketPrice}`;
                         currentPrice = ticketPrice;
-
+                        
                         buyModal.style.display = 'flex';
                     });
                 });
@@ -455,7 +455,7 @@
                     .catch(error => {
                         showError('發生錯誤，請稍後再試');
                     });
-
+                    
                     buyModal.style.display = 'none';
                 });
             });
