@@ -1,19 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}遊樂園-關於我們{% endblock %}
+{% block title %}關於我們 - 遊樂園{% endblock %}
 
 {% block css %}
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style1.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/user_menu.css') }}">
-
 {% endblock %}
 
 {% block content %}
 
-    <main style="margin-top:90px;">
-        <section class="about" style="background-color:#CCEEFF; min-height:80vh; position:relative; display:flex; align-items:center; justify-content:center;">
-            <img src="{{ url_for('static', filename='images/am.png') }}" alt="遊樂園" style="position:absolute; top:0; left:50%; transform:translateX(-50%); width:80vw; max-width:900px; height:auto; opacity:0.6; z-index:1; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.08);">
+    <main style="margin-top:80px;">
+        <section class="about" style="background-color:#CCEEFF; min-height:85vh; position:relative; display:flex; align-items:center; justify-content:center;">
+            <img src="{{ url_for('static', filename='images/am.png') }}" alt="遊樂園" style="position:absolute; top: 80px;; left:50%; transform:translateX(-50%); width:80vw; max-width:900px; height:auto; opacity:0.6; z-index:1; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.08);">
             <div style="position:relative; z-index:2; width:100%; display:flex; flex-direction:column; align-items:center; margin-top:120px;">
                 <h2 style="color:#485652; font-size:2.5em; margin-bottom:20px; background:rgba(255,255,255,0.7); padding:0.3em 1em; border-radius:8px;">關於我們</h2>
                 <p style="color:#333; font-size:1.2em; max-width:700px; text-align:center; line-height:2; background:rgba(255,255,255,0.7); padding:1.2em 2em; border-radius:12px;">
@@ -26,11 +24,9 @@
             </div>
         </section>
     </main>
-
 {% endblock %}
 
-{% block scripts %}
-
+{% block script %}
     <script src="{{ url_for('static', filename='js/user_menu.js') }}"></script>
-
 {% endblock %}
+

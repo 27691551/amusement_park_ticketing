@@ -29,24 +29,22 @@
         </ul>
     </nav>
     {% if session.get('username') %}
-    <div class="user-menu">
-        <img src="{{ url_for('static', filename='images/avatar.png') }}" class="avatar" id="avatar-btn">
-        <div class="dropdown" id="user-dropdown">
-            <div class="dropdown-username">{{ session['username'] }}</div>
-            <a href="{{ url_for('logout') }}">登出</a>
+        <div class="user-menu">
+            <img src="{{ url_for('static', filename='images/avatar.png') }}" class="avatar" id="avatar-btn">
+            <div class="dropdown" id="user-dropdown">
+                <div class="dropdown-username">{{ session['username'] }}</div>
+                <a href="{{ url_for('logout') }}">登出</a>
+            </div>
         </div>
-    </div>
     {% endif %}
 
     {% block content %}{% endblock %}
-
-    <footer>
-        <p>&copy; 2025 遊樂園. 版權所有.</p>
-    </footer>
 
     <!-- 各頁可額外加的 JS -->
     {% block scripts %}{% endblock %}
 
 </body>
-
+ <footer>
+        <p>&copy; 2025 遊樂園. 版權所有.</p>
+</footer>
 </html>

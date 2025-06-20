@@ -1,16 +1,12 @@
-{% extends "base.html" %}
-
-{% block title %}遊樂園-使用者管理{% endblock %}
-
-{% block css %}
-
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使用者管理 | 遊樂園</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style1.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/user_menu.css') }}">
-
-{% endblock %}
-
-{% block style %}
-
     <style>
         .profile-section {
             background-color: #CCEEFF;
@@ -41,7 +37,7 @@
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        .users-table th,
+        .users-table th, 
         .users-table td {
             padding: 12px;
             text-align: left;
@@ -144,23 +140,50 @@
             .users-container {
                 padding: 20px 16px;
             }
-            .users-table th,
+            .users-table th, 
             .users-table td {
                 padding: 8px;
                 font-size: 14px;
             }
         }
     </style>
-
-{% endblock %}
-
-{% block content %}
-
+</head>
+<body>
+    <header style="z-index:10; position:fixed; top:0; left:0; width:100%;">
+        <button class="menu">&#9776</button>
+        <h1>遊樂園</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">首頁</a></li>
+                <li><a href="{{ url_for('about') }}">關於我們</a></li>
+                <li><a href="{{ url_for('tickets') }}">線上購票</a></li>
+                <li><a href="{{ url_for('readyshopping') }}">購物車</a></li>
+                {% if session.get('username') %}
+                <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
+                {% if session.get('username') == 'admin' %}
+                <li><a href="{{ url_for('admin_orders') }}">訂單總覽</a></li>
+                <li><a href="{{ url_for('admin_users') }}" style="color:#f7f7f7;font-weight:bold;">使用者管理</a></li>
+                {% endif %}
+                {% else %}
+                <li><a href="{{ url_for('login') }}">會員專區</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% if session.get('username') %}
+        <div class="user-menu">
+            <img src="{{ url_for('static', filename='images/avatar.png') }}" class="avatar" id="avatar-btn">
+            <div class="dropdown" id="user-dropdown">
+                <div class="dropdown-username">{{ session['username'] }}</div>
+                <a href="{{ url_for('logout') }}">登出</a>
+            </div>
+        </div>
+        {% endif %}
+    </header>
     <main style="margin-top:90px;">
         <section class="profile-section">
             <div class="users-container">
                 <h2>使用者管理</h2>
-
+                
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
@@ -224,24 +247,23 @@
             </div>
         </div>
     </main>
-
-{% endblock %}
-
-{% block scripts %}
+    <footer>
+        <p>&copy; 2025 遊樂園. 版權所有.</p>
+    </footer>
     <script src="{{ url_for('static', filename='js/user_menu.js') }}"></script>
     <script>
         let userToDelete = '';
-
+        
         function showDeleteModal(username) {
             userToDelete = username;
             document.getElementById('deleteUsername').textContent = username;
             document.getElementById('deleteModal').style.display = 'flex';
         }
-
+        
         function hideDeleteModal() {
             document.getElementById('deleteModal').style.display = 'none';
         }
-
+        
         function confirmDelete() {
             if (userToDelete) {
                 window.location.href = `/admin/delete_user/${userToDelete}`;
@@ -256,5 +278,5 @@
             }
         }
     </script>
-
-{% endblock %}
+</body>
+</html>
