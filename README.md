@@ -72,6 +72,7 @@ amusement_park_ticketing/
 - SQLite
 - Jinja2
 - qrcode
+- Pillow
 - HTML/CSS/JavaScript
 
 ## 資料庫說明
