@@ -48,21 +48,42 @@ amusement_park_ticketing/
 ├── membership.db         # SQLite 資料庫（啟動時自動建立）
 ├── static/               # 靜態資源（CSS/JS/圖片/QR Code）
 │   ├── css/
-│   ├── js/
-│   └── images/
+│   │   ├── style1.css
+│   │   ├── style2.css
+│   │   └── user_menu.css
+│   ├── images/
+│   │   ├── adult.png
+│   │   ├── am_ch.png
+│   │   ├── am_logo.png
+│   │   ├── am.png
+│   │   ├── avatar.png
+│   │   ├── emptyshopping.png
+│   │   ├── error.png
+│   │   ├── pirate_ship.png
+│   │   ├── qu.png
+│   │   ├── shopping.png
+│   │   ├── skyscraper.png
+│   │   ├── student.png
+│   │   ├── water_park.png
+│   │   └── qrcodes/      # 存放 QR Code 圖片
+│   └── js/
+│       ├── script1.js
+│       └── user_menu.js              
 ├── templates/            # 前端模板（HTML）
-│   ├── index.html
-│   ├── tickets.html
-│   ├── readyshopping.html
-│   ├── my_orders.html
-│   ├── edit_profile.html
+│   ├── about.html
 │   ├── admin_orders.html
 │   ├── admin_users.html
-│   ├── login.html
-│   ├── forgot_password.html
+│   ├── base.html
+│   ├── edit_profile.html
+│   ├── emptyshopping.html
 │   ├── error.html
-│   └── ...
-└── README.md
+│   ├── forgot_password.html
+│   ├── index.html
+│   ├── login.html
+│   ├── my_orders.html
+│   ├── readyshopping.html
+│   ├── tickets.html
+├── README.md
 ```
 
 ## 主要技術
