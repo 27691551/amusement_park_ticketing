@@ -1,282 +1,239 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>使用者管理 | 遊樂園</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style1.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/user_menu.css') }}">
-    <style>
-        .profile-section {
-            background-color: #CCEEFF;
-            min-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding-bottom: 60px;
-        }
+{% extends "base.html" %}
+
+{% block title %}使用者管理 | 遊樂園{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background-color: #CCEEFF; }
+    .profile-section {
+        background-color: transparent;
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-bottom: 60px;
+    }
+    .users-container {
+        background: #fff;
+        padding: 40px 32px;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        min-width: 320px;
+        max-width: 800px;
+        width: 100%;
+        margin-top: 40px;
+    }
+    .users-container h2 {
+        text-align: center;
+        margin-bottom: 24px;
+        color: #485652;
+    }
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    .users-table th, .users-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    .users-table th {
+        background: #73946B;
+        color: white;
+    }
+    .users-table tr:hover {
+        background: #f5f5f5;
+    }
+    .delete-btn {
+        background: #ff6b6b;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .delete-btn:hover {
+        background: #ff5252;
+    }
+    .add-user-form {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    .add-user-form h3 {
+        color: #485652;
+        margin-bottom: 15px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #485652;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #73946B;
+        border-radius: 4px;
+    }
+    .add-btn {
+        background: #73946B;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .add-btn:hover {
+        background: #485652;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 300px;
+        text-align: center;
+    }
+    .modal-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+    .alert {
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+    }
+    .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    @media screen and (max-width: 600px) {
         .users-container {
-            background: #fff;
-            padding: 40px 32px;
-            border-radius: 16px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            min-width: 320px;
-            max-width: 800px;
-            width: 100%;
-            margin-top: 40px;
+            padding: 20px 16px;
         }
-        .users-container h2 {
-            text-align: center;
-            margin-bottom: 24px;
-            color: #485652;
-        }
-        .users-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        .users-table th, 
-        .users-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        .users-table th {
-            background: #73946B;
-            color: white;
-        }
-        .users-table tr:hover {
-            background: #f5f5f5;
-        }
-        .delete-btn {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .delete-btn:hover {
-            background: #ff5252;
-        }
-        .add-user-form {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        .add-user-form h3 {
-            color: #485652;
-            margin-bottom: 15px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #485652;
-        }
-        .form-group input {
-            width: 100%;
+        .users-table th, .users-table td {
             padding: 8px;
-            border: 1px solid #73946B;
-            border-radius: 4px;
+            font-size: 14px;
         }
-        .add-btn {
-            background: #73946B;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .add-btn:hover {
-            background: #485652;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 300px;
-            text-align: center;
-        }
-        .modal-buttons {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-        .alert {
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-        }
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        @media screen and (max-width: 600px) {
-            .users-container {
-                padding: 20px 16px;
-            }
-            .users-table th, 
-            .users-table td {
-                padding: 8px;
-                font-size: 14px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header style="z-index:10; position:fixed; top:0; left:0; width:100%;">
-        <button class="menu">&#9776</button>
-        <h1>遊樂園</h1>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('index') }}">首頁</a></li>
-                <li><a href="{{ url_for('about') }}">關於我們</a></li>
-                <li><a href="{{ url_for('tickets') }}">線上購票</a></li>
-                <li><a href="{{ url_for('readyshopping') }}">購物車</a></li>
-                {% if session.get('username') %}
-                <li><a href="{{ url_for('edit_profile') }}">會員專區</a></li>
-                {% if session.get('username') == 'admin' %}
-                <li><a href="{{ url_for('admin_orders') }}">訂單總覽</a></li>
-                <li><a href="{{ url_for('admin_users') }}" style="color:#f7f7f7;font-weight:bold;">使用者管理</a></li>
-                {% endif %}
-                {% else %}
-                <li><a href="{{ url_for('login') }}">會員專區</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% if session.get('username') %}
-        <div class="user-menu">
-            <img src="{{ url_for('static', filename='images/avatar.png') }}" class="avatar" id="avatar-btn">
-            <div class="dropdown" id="user-dropdown">
-                <div class="dropdown-username">{{ session['username'] }}</div>
-                <a href="{{ url_for('logout') }}">登出</a>
-            </div>
-        </div>
-        {% endif %}
-    </header>
-    <main style="margin-top:90px;">
-        <section class="profile-section">
-            <div class="users-container">
-                <h2>使用者管理</h2>
-                
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+    }
+</style>
+{% endblock %}
 
-                <table class="users-table">
-                    <thead>
-                        <tr>
-                            <th>使用者名稱</th>
-                            <th>電子郵件</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ user[1] }}</td>
-                            <td>{{ user[2] }}</td>
-                            <td>
-                                {% if user[1] != 'admin' %}
-                                <button class="delete-btn" onclick="showDeleteModal('{{ user[1] }}')">刪除</button>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+{% block header_attributes %}style="z-index:10; position:fixed; top:0; left:0; width:100%;"{% endblock %}
 
-                <div class="add-user-form">
-                    <h3>新增使用者</h3>
-                    <form method="POST" action="{{ url_for('admin_add_user') }}">
-                        <div class="form-group">
-                            <label for="username">使用者名稱</label>
-                            <input type="text" id="username" name="username" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">電子郵件</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="password">密碼</label>
-                            <input type="password" id="password" name="password" required>
-                        </div>
-                        <button type="submit" class="add-btn">新增使用者</button>
-                    </form>
+{% block main_attributes %}style="margin-top:90px;"{% endblock %}
+
+{% block content %}
+<section class="profile-section">
+    <div class="users-container">
+        <h2>使用者管理</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>使用者名稱</th>
+                    <th>電子郵件</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user[1] }}</td>
+                    <td>{{ user[2] }}</td>
+                    <td>
+                        {% if user[1] != 'admin' %}
+                        <button class="delete-btn" onclick="showDeleteModal('{{ user[1] }}')">刪除</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="add-user-form">
+            <h3>新增使用者</h3>
+            <form method="POST" action="{{ url_for('admin_add_user') }}">
+                <div class="form-group">
+                    <label for="username">使用者名稱</label>
+                    <input type="text" id="username" name="username" required>
                 </div>
-            </div>
-        </section>
-
-        <!-- 刪除確認對話框 -->
-        <div id="deleteModal" class="modal">
-            <div class="modal-content">
-                <p>確定要刪除使用者 <span id="deleteUsername"></span> 嗎？</p>
-                <div class="modal-buttons">
-                    <button class="delete-btn" onclick="confirmDelete()">確定</button>
-                    <button class="add-btn" onclick="hideDeleteModal()">取消</button>
+                <div class="form-group">
+                    <label for="email">電子郵件</label>
+                    <input type="email" id="email" name="email" required>
                 </div>
-            </div>
+                <div class="form-group">
+                    <label for="password">密碼</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="add-btn">新增使用者</button>
+            </form>
         </div>
-    </main>
-    <footer>
-        <p>&copy; 2025 遊樂園. 版權所有.</p>
-    </footer>
-    <script src="{{ url_for('static', filename='js/user_menu.js') }}"></script>
-    <script>
-        let userToDelete = '';
-        
-        function showDeleteModal(username) {
-            userToDelete = username;
-            document.getElementById('deleteUsername').textContent = username;
-            document.getElementById('deleteModal').style.display = 'flex';
-        }
-        
-        function hideDeleteModal() {
-            document.getElementById('deleteModal').style.display = 'none';
-        }
-        
-        function confirmDelete() {
-            if (userToDelete) {
-                window.location.href = `/admin/delete_user/${userToDelete}`;
-            }
-        }
+    </div>
+</section>
+<!-- 刪除確認對話框 -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <p>確定要刪除使用者 <span id="deleteUsername"></span> 嗎？</p>
+        <div class="modal-buttons">
+            <button class="delete-btn" onclick="confirmDelete()">確定</button>
+            <button class="add-btn" onclick="hideDeleteModal()">取消</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-        // 點擊模態框外部關閉
-        window.onclick = function(event) {
-            let modal = document.getElementById('deleteModal');
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
+{% block extra_js %}
+<script>
+    let userToDelete = '';
+    function showDeleteModal(username) {
+        userToDelete = username;
+        document.getElementById('deleteUsername').textContent = username;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+    function hideDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+    function confirmDelete() {
+        if (userToDelete) {
+            window.location.href = `/admin/delete_user/${userToDelete}`;
         }
-    </script>
-</body>
-</html>
+    }
+    window.onclick = function(event) {
+        let modal = document.getElementById('deleteModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+{% endblock %}

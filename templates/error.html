@@ -2,13 +2,95 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>錯誤</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/am_logo.png') }}">
+    <style>
+    body {
+        background: #CCEEFF;
+        margin: 0;
+        font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+    }
+    .error-container {
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #fffbe6;
+        border-radius: 20px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+        max-width: 600px;
+        margin: 70px auto 0 auto;
+        padding: 64px 32px 48px 32px;
+    }
+    .error-icon {
+        width: 180px;
+        height: 180px;
+        margin-bottom: 32px;
+        opacity: 0.95;
+        display: block;
+    }
+    .error-title {
+        color: #ff6b6b;
+        font-size: 2.8em;
+        font-weight: bold;
+        margin-bottom: 24px;
+        letter-spacing: 2px;
+        text-align: center;
+    }
+    .error-message {
+        color: #485652;
+        font-size: 1.35em;
+        margin-bottom: 28px;
+        text-align: center;
+        line-height: 1.7;
+    }
+    .error-back {
+        display: inline-block;
+        background: #73946B;
+        color: #fff;
+        padding: 14px 40px;
+        border-radius: 10px;
+        font-size: 1.2em;
+        text-decoration: none;
+        transition: background 0.2s;
+        margin-top: 10px;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+    .error-back:hover {
+        background: #485652;
+    }
+    @media (max-width: 700px) {
+        .error-container {
+            max-width: 98vw;
+            padding: 32px 8px 24px 8px;
+            margin-top: 40px;
+        }
+        .error-icon {
+            width: 110px;
+            height: 110px;
+        }
+        .error-title {
+            font-size: 2em;
+        }
+        .error-message {
+            font-size: 1em;
+        }
+    }
+    </style>
 </head>
 <body>
-    <h1>錯誤</h1>
-    {% if message %}
-        <p>{{ message }}</p>
-    {% endif %}
-    <p><a href="{{ url_for('index') }}">返回首頁</a></p>
+    <div class="error-container">
+        <img src="{{ url_for('static', filename='images/error.png') }}" alt="錯誤" class="error-icon">
+        <div class="error-title">發生錯誤</div>
+        {% if message %}
+            <div class="error-message">{{ message }}</div>
+        {% else %}
+            <div class="error-message">發生未知錯誤，請稍後再試。</div>
+        {% endif %}
+        <a href="{{ url_for('index') }}" class="error-back">返回首頁</a>
+    </div>
 </body>
 </html>
