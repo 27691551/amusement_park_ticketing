@@ -66,7 +66,7 @@ amusement_park_ticketing/
 │   │   ├── student.png
 │   │   ├── water_park.png
 │   │   └── qrcodes/      # 存放 QR Code 圖片
-│   └── js/
+│   └── js/               # JavaScript 檔案
 │       ├── script1.js
 │       └── user_menu.js              
 ├── templates/            # 前端模板（HTML）
